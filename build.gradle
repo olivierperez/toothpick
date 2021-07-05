@@ -17,6 +17,8 @@ apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
 
 repositories {
+  mavenCentral()
+  google()
   jcenter()
 }
 
@@ -80,6 +82,7 @@ subprojects { project ->
   version = VERSION_NAME
 
   repositories {
+    google()
     jcenter()
   }
 
