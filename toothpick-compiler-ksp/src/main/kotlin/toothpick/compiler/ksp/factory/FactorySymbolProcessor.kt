@@ -1,4 +1,4 @@
-package toothpick.compiler.ksp
+package toothpick.compiler.ksp.factory
 
 import com.google.devtools.ksp.isConstructor
 import com.google.devtools.ksp.processing.CodeGenerator
@@ -9,6 +9,8 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
+import toothpick.compiler.ksp.INJECT_ANNOTATION_CLASS_NAME
+import toothpick.compiler.ksp.factory.generators.FactoryCodeGenerator
 
 class FactorySymbolProcessor(
     private val options: Map<String, String>,
@@ -16,7 +18,7 @@ class FactorySymbolProcessor(
     private val logger: KSPLogger
 ) : SymbolProcessor {
 
-    private val visitor = ClassVisitor(codeGenerator, logger)
+    private val visitor = ClassVisitor(logger, FactoryCodeGenerator(codeGenerator))
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val injectClasses = resolver.getSymbolsWithAnnotation(INJECT_ANNOTATION_CLASS_NAME)

@@ -1,4 +1,4 @@
-package toothpick.compiler.ksp
+package toothpick.compiler.ksp.factory
 
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment

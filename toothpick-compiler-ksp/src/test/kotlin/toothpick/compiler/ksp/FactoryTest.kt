@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import toothpick.compiler.ksp.factory.FactorySymbolProcessorProvider
 import java.io.File
 
 private fun compile(temporaryFolder: File, vararg source: SourceFile) = KotlinCompilation().apply {
@@ -30,46 +31,61 @@ private fun KotlinCompilation.Result.kspGeneratedSources(): List<File> {
 private val KotlinCompilation.Result.workingDir: File
     get() = checkNotNull(outputDirectory.parentFile)
 
-class KspTest {
+@DisplayName("When generating Factories")
+class FactoryTest {
+
     @TempDir
     lateinit var temporaryFolder: File
 
     @Test
-    @DisplayName("Toto")
-    fun toto() {
+    @DisplayName("with public empty constructor")
+    fun testEmptyConstructor_shouldWork_whenConstructorIsPublic() {
         // Given
         val kotlinSource = SourceFile.kotlin(
             trimIndent = true,
-            name = "FooInjectable.kt",
+            name = "TestEmptyConstructor.kt",
             contents = """
-                package com.tests.summable
-                
+                package test
+
                 import javax.inject.Inject
-                
-                class FooInjectable @Inject constructor(
-                    val bar: Int,
-                    val baz: Int
-                )
+
+                class TestEmptyConstructor @Inject constructor()
                 """
         )
 
         // When
-        val compilationResult = compile(File("E:\\progs\\android\\toothpick\\toothpick-compiler-ksp\\opz"), kotlinSource)
+        val compilationResult = compile(temporaryFolder, kotlinSource)
 
         // Then
         assertEquals(KotlinCompilation.ExitCode.OK, compilationResult.exitCode)
         assertTrue(compilationResult.kspGeneratedSources().isNotEmpty())
         assertEquals(
             """
-            package com.tests.summable
+            package test
             
-            import kotlin.Int
+            import kotlin.Boolean
+            import toothpick.Factory
+            import toothpick.Scope
             
-            public fun FooSummable.sumInts(): Int {
-              val sum = bar + baz
-              return sum
-            }""",
-            compilationResult.outputDirectory
+            public class TestEmptyConstructor__Factory : Factory<TestEmptyConstructor> {
+              public override fun createInstance(scope: Scope): TestEmptyConstructor {
+                val instance = TestEmptyConstructor()
+                return instance
+              }
+
+              public override fun hasScopeAnnotation(): Boolean = false
+
+              public override fun hasSingletonAnnotation(): Boolean = false
+
+              public override fun hasReleasableAnnotation(): Boolean = false
+
+              public override fun hasProvidesSingletonAnnotation(): Boolean = false
+
+              public override fun hasProvidesReleasableAnnotation(): Boolean = false
+            }
+            
+            """.trimIndent(),
+            File(compilationResult.outputDirectory, "../ksp/sources/kotlin/test/TestEmptyConstructor__Factory.kt").readText()
         )
     }
 }
