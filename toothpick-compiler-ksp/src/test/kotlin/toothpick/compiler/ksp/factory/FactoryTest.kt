@@ -74,6 +74,61 @@ class FactoryTest {
     }
 
     @Test
+    @DisplayName("with empty internal constructor")
+    fun testEmptyConstructor_shouldWork_whenConstructorIsInternal() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestEmptyConstructor.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+
+                class TestEmptyConstructor @Inject internal constructor()
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+        assertEquals(KotlinCompilation.ExitCode.OK, compilationResult.exitCode)
+        assertTrue(compilationResult.kspGeneratedSources().isNotEmpty())
+        assertEquals(
+            """
+            package test
+            
+            import kotlin.Boolean
+            import toothpick.Factory
+            import toothpick.Scope
+            
+            public class TestEmptyConstructor__Factory : Factory<TestEmptyConstructor> {
+              public override fun createInstance(scope: Scope): TestEmptyConstructor {
+                val instance = TestEmptyConstructor()
+                return instance
+              }
+
+              public override fun hasScopeAnnotation(): Boolean = false
+
+              public override fun hasSingletonAnnotation(): Boolean = false
+
+              public override fun hasReleasableAnnotation(): Boolean = false
+
+              public override fun hasProvidesSingletonAnnotation(): Boolean = false
+
+              public override fun hasProvidesReleasableAnnotation(): Boolean = false
+            }
+            
+            """.trimIndent(),
+            File(
+                compilationResult.outputDirectory,
+                "../ksp/sources/kotlin/test/TestEmptyConstructor__Factory.kt"
+            ).readText()
+        )
+    }
+
+    @Test
     @DisplayName("with empty protected constructor")
     fun testProtectedConstructor_shouldNotAllowInjection() {
         // Given
@@ -126,6 +181,89 @@ class FactoryTest {
         assertTrue(compilationResult.kspGeneratedSources().foldersAreEmpty())
         assertTrue(
             compilationResult.messages.contains("@Inject constructors must be public in class test.TestPrivateConstructor")
+        )
+    }
+
+    @Test
+    @DisplayName("with private class")
+    fun testPrivateClass_shouldNotAllowInjection() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestPrivateClass.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+
+                private class TestPrivateClass @Inject constructor()
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+
+        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilationResult.exitCode)
+        assertTrue(compilationResult.kspGeneratedSources().foldersAreEmpty())
+        assertTrue(
+            compilationResult.messages.contains("@Inject constructors are not allowed in private classe test.TestPrivateClass")
+        )
+    }
+
+    @Test
+    @DisplayName("with internal class")
+    fun testInternalClass_shouldWork_whenConstructorIsPublic() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestEmptyConstructor.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+
+                internal class TestEmptyConstructor @Inject constructor()
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+        assertEquals(KotlinCompilation.ExitCode.OK, compilationResult.exitCode)
+        assertTrue(compilationResult.kspGeneratedSources().isNotEmpty())
+        assertEquals(
+            """
+            package test
+            
+            import kotlin.Boolean
+            import toothpick.Factory
+            import toothpick.Scope
+            
+            public class TestEmptyConstructor__Factory : Factory<TestEmptyConstructor> {
+              public override fun createInstance(scope: Scope): TestEmptyConstructor {
+                val instance = TestEmptyConstructor()
+                return instance
+              }
+
+              public override fun hasScopeAnnotation(): Boolean = false
+
+              public override fun hasSingletonAnnotation(): Boolean = false
+
+              public override fun hasReleasableAnnotation(): Boolean = false
+
+              public override fun hasProvidesSingletonAnnotation(): Boolean = false
+
+              public override fun hasProvidesReleasableAnnotation(): Boolean = false
+            }
+            
+            """.trimIndent(),
+            File(
+                compilationResult.outputDirectory,
+                "../ksp/sources/kotlin/test/TestEmptyConstructor__Factory.kt"
+            ).readText()
         )
     }
 }

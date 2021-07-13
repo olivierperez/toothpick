@@ -1,6 +1,6 @@
 package toothpick.compiler.ksp.factory
 
-import com.google.devtools.ksp.isConstructor
+import com.google.devtools.ksp.isInternal
 import com.google.devtools.ksp.isPublic
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
@@ -16,8 +16,13 @@ class ClassVisitor(
         logger.info("#OPZ# Visiting function declaration: $function")
         val classDeclaration = function.parentDeclaration as KSClassDeclaration
 
-        function.isConstructor() || return
-        function.isPublic() || error("@Inject constructors must be public in class ${classDeclaration.packageName.asString()}.${classDeclaration.simpleName.asString()}")
+        function.isPublic()
+                || function.isInternal()
+                || error("@Inject constructors must be public in class ${classDeclaration.packageName.asString()}.${classDeclaration.simpleName.asString()}")
+
+        classDeclaration.isPublic()
+                || classDeclaration.isInternal()
+                || error("@Inject constructors are not allowed in private classe ${classDeclaration.packageName.asString()}.${classDeclaration.simpleName.asString()}")
 
         visitClassDeclaration(classDeclaration, data)
     }
