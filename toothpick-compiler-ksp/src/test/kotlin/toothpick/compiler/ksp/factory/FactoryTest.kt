@@ -443,4 +443,70 @@ class FactoryTest {
             ).readText()
         )
     }
+
+    @Test
+    @DisplayName("with inheritance of a class with one member injected")
+    fun testAClassThatInheritFromAnotherClassThatNeedsInjection() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestAClassThatNeedsInjection.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+
+                class TestAClassThatNeedsInjection @Inject constructor(): SuperClassThatNeedsInjection()
+                open class SuperClassThatNeedsInjection {
+                  @Inject
+                  lateinit var message: String
+                }
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+        assertEquals(KotlinCompilation.ExitCode.OK, compilationResult.exitCode)
+        assertTrue(compilationResult.kspGeneratedSources().isNotEmpty())
+        assertEquals(
+            """
+            package test
+            
+            import kotlin.Boolean
+            import toothpick.Factory
+            import toothpick.MemberInjector
+            import toothpick.Scope
+            
+            public class TestAClassThatNeedsInjection__Factory : Factory<TestAClassThatNeedsInjection> {
+              private val memberInjector: MemberInjector<SuperClassThatNeedsInjection> =
+                  test.SuperClassThatNeedsInjection__MemberInjector()
+
+              public override fun createInstance(scope: Scope): TestAClassThatNeedsInjection {
+                val instance = TestAClassThatNeedsInjection()
+                memberInjector.inject(instance, scope)
+                return instance
+              }
+
+              public override fun getTargetScope(scope: Scope): Scope = scope
+
+              public override fun hasScopeAnnotation(): Boolean = false
+
+              public override fun hasSingletonAnnotation(): Boolean = false
+
+              public override fun hasReleasableAnnotation(): Boolean = false
+
+              public override fun hasProvidesSingletonAnnotation(): Boolean = false
+
+              public override fun hasProvidesReleasableAnnotation(): Boolean = false
+            }
+            
+            """.trimIndent(),
+            File(
+                compilationResult.outputDirectory,
+                "../ksp/sources/kotlin/test/TestAClassThatNeedsInjection__Factory.kt"
+            ).readText()
+        )
+    }
 }

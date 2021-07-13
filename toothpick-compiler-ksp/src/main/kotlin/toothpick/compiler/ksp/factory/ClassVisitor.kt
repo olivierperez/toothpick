@@ -6,6 +6,7 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import toothpick.compiler.ksp.common.containsInject
+import toothpick.compiler.ksp.common.superClass
 import toothpick.compiler.ksp.factory.targets.ConstructorInjectionTarget
 
 class ClassVisitor(
@@ -37,10 +38,11 @@ class ClassVisitor(
 private fun KSClassDeclaration.getMostDirectSuperClassWithInjectedMembers(): KSClassDeclaration? {
     var klass: KSClassDeclaration? = this
     do {
-        if (this.declarations.any { it is KSPropertyDeclaration && it.annotations.containsInject() }) {
-            return this
+        if (klass!!.declarations.any { it is KSPropertyDeclaration && it.annotations.containsInject() }) {
+            return klass
         }
-        klass = klass!!.parentDeclaration as? KSClassDeclaration
+
+        klass = klass.superClass
     } while (klass != null)
 
     return null
