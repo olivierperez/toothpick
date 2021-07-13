@@ -32,6 +32,7 @@ class FactoryCodeGenerator(
                 TypeSpec.classBuilder(generatedClassName)
                     .addSuperinterface(superInterface)
                     .addCreateInstanceFunction(className)
+                    .addGetTargetScope()
                     .addHasScopeAnnotation(injectionTarget.scopeName != null)
                     .addHasSingletonAnnotation(injectionTarget.hasSingletonAnnotation)
                     .addHasReleasableAnnotation(injectionTarget.hasReleasableAnnotation)
@@ -49,6 +50,17 @@ class FactoryCodeGenerator(
             fileSpec.writeTo(it)
         }
     }
+}
+
+private fun TypeSpec.Builder.addGetTargetScope(): TypeSpec.Builder {
+    return this.addFunction(
+        FunSpec.builder("getTargetScope")
+            .returns(Scope::class.java)
+            .addModifiers(KModifier.OVERRIDE)
+            .addParameter("scope", Scope::class)
+            .addStatement("return scope")
+            .build()
+    )
 }
 
 private fun TypeSpec.Builder.addHasProvidesSingletonAnnotation(hasProvidesSingletonAnnotation: Boolean): TypeSpec.Builder {
