@@ -313,4 +313,61 @@ class FactoryTest {
             "Error message not found!"
         )
     }
+
+    @Test
+    @DisplayName("with 2 constructor but only 1 injected")
+    fun testOneOnTwoConstructorIsInjected_shouldWork() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestOnlyOneInjectedConstructor.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+
+                class TestOnlyOneInjectedConstructor @Inject constructor() {
+                    constructor(message: String): this()
+                }
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+        assertEquals(KotlinCompilation.ExitCode.OK, compilationResult.exitCode)
+        assertTrue(compilationResult.kspGeneratedSources().isNotEmpty())
+        assertEquals(
+            """
+            package test
+            
+            import kotlin.Boolean
+            import toothpick.Factory
+            import toothpick.Scope
+            
+            public class TestOnlyOneInjectedConstructor__Factory : Factory<TestOnlyOneInjectedConstructor> {
+              public override fun createInstance(scope: Scope): TestOnlyOneInjectedConstructor {
+                val instance = TestOnlyOneInjectedConstructor()
+                return instance
+              }
+
+              public override fun hasScopeAnnotation(): Boolean = false
+
+              public override fun hasSingletonAnnotation(): Boolean = false
+
+              public override fun hasReleasableAnnotation(): Boolean = false
+
+              public override fun hasProvidesSingletonAnnotation(): Boolean = false
+
+              public override fun hasProvidesReleasableAnnotation(): Boolean = false
+            }
+            
+            """.trimIndent(),
+            File(
+                compilationResult.outputDirectory,
+                "../ksp/sources/kotlin/test/TestOnlyOneInjectedConstructor__Factory.kt"
+            ).readText()
+        )
+    }
 }
