@@ -1,5 +1,7 @@
 package toothpick.compiler.ksp.factory
 
+import com.google.devtools.ksp.isConstructor
+import com.google.devtools.ksp.isPublic
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import toothpick.compiler.ksp.factory.generators.FactoryCodeGenerator
@@ -12,7 +14,11 @@ class ClassVisitor(
 
     override fun visitFunctionDeclaration(function: KSFunctionDeclaration, data: Unit) {
         logger.info("#OPZ# Visiting function declaration: $function")
-        val classDeclaration = function.parentDeclaration as  KSClassDeclaration
+        val classDeclaration = function.parentDeclaration as KSClassDeclaration
+
+        function.isConstructor() || return
+        function.isPublic() || error("@Inject constructors must be public in class ${classDeclaration.packageName.asString()}.${classDeclaration.simpleName.asString()}")
+
         visitClassDeclaration(classDeclaration, data)
     }
 
