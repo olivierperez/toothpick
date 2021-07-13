@@ -17,6 +17,7 @@
 package toothpick.compiler.ksp.factory.targets
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import toothpick.compiler.ksp.common.ParamInjectionTarget
 import java.util.ArrayList
 import javax.lang.model.element.TypeElement
@@ -24,6 +25,7 @@ import javax.lang.model.element.TypeElement
 /** Basically all information to create an object / call a constructor of a class.  */
 class ConstructorInjectionTarget(
     val classDeclaration: KSClassDeclaration,
+    val constructorDeclaration: KSFunctionDeclaration,
     val scopeName: String?,
     val hasSingletonAnnotation: Boolean,
     val hasReleasableAnnotation: Boolean,

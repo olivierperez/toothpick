@@ -12,13 +12,14 @@ import toothpick.compiler.ksp.factory.generators.FactoryCodeGenerator
 
 class FactorySymbolProcessor(
     private val options: Map<String, String>,
-    private val codeGenerator: CodeGenerator,
+    private val generalCodeGenerator: CodeGenerator,
     private val logger: KSPLogger
 ) : SymbolProcessor {
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val visitor = ClassVisitor(logger)
-        val factoryCodeGenerator = FactoryCodeGenerator(codeGenerator)
+        val codeGenerator = FactoryCodeGenerator(generalCodeGenerator)
+        val targetValidator = FactoryTargetValidator()
 
         val injectedSymbols = resolver.getSymbolsWithAnnotation(INJECT_ANNOTATION_CLASS_NAME)
 
@@ -29,9 +30,9 @@ class FactorySymbolProcessor(
             .filterIsInstance(KSFunctionDeclaration::class.java)
             .forEach { it.accept(visitor, Unit) }
 
-        visitor.targets.forEach {
-            factoryCodeGenerator.generate(it)
-        }
+        visitor.targets
+            .onEach(targetValidator::check)
+            .forEach(codeGenerator::generate)
 
         return unableToProcess.toList()
     }

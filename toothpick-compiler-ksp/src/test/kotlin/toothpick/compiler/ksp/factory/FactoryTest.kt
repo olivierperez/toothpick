@@ -150,9 +150,13 @@ class FactoryTest {
         // Then
 
         assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilationResult.exitCode)
-        assertTrue(compilationResult.kspGeneratedSources().foldersAreEmpty())
         assertTrue(
-            compilationResult.messages.contains("@Inject constructors must be public in class test.TestProtectedConstructor")
+            compilationResult.kspGeneratedSources().foldersAreEmpty(),
+            "Nothing should be generated!"
+        )
+        assertTrue(
+            compilationResult.messages.contains("@Inject constructors must be public in class test.TestProtectedConstructor"),
+            "Error message not found!"
         )
     }
 
@@ -178,9 +182,13 @@ class FactoryTest {
         // Then
 
         assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilationResult.exitCode)
-        assertTrue(compilationResult.kspGeneratedSources().foldersAreEmpty())
         assertTrue(
-            compilationResult.messages.contains("@Inject constructors must be public in class test.TestPrivateConstructor")
+            compilationResult.kspGeneratedSources().foldersAreEmpty(),
+            "Nothing should be generated!"
+        )
+        assertTrue(
+            compilationResult.messages.contains("@Inject constructors must be public in class test.TestPrivateConstructor"),
+            "Error message not found!"
         )
     }
 
@@ -206,9 +214,13 @@ class FactoryTest {
         // Then
 
         assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilationResult.exitCode)
-        assertTrue(compilationResult.kspGeneratedSources().foldersAreEmpty())
         assertTrue(
-            compilationResult.messages.contains("@Inject constructors are not allowed in private classe test.TestPrivateClass")
+            compilationResult.kspGeneratedSources().foldersAreEmpty(),
+            "Nothing should be generated!"
+        )
+        assertTrue(
+            compilationResult.messages.contains("@Inject constructors are not allowed in private classe test.TestPrivateClass"),
+            "Error message not found!"
         )
     }
 
@@ -264,6 +276,41 @@ class FactoryTest {
                 compilationResult.outputDirectory,
                 "../ksp/sources/kotlin/test/TestEmptyConstructor__Factory.kt"
             ).readText()
+        )
+    }
+
+    @Test
+    @DisplayName("with 2 injected constructors")
+    fun testTwoInjectedConstructors_shouldNotAllowInjection() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestTwoInjectedConstructors.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+
+                class TestTwoInjectedConstructors @Inject constructor() {
+                  @Inject
+                  constructor(message: String): this()
+                }
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+
+        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilationResult.exitCode)
+        assertTrue(
+            compilationResult.kspGeneratedSources().foldersAreEmpty(),
+            "Nothing should be generated!"
+        )
+        assertTrue(
+            compilationResult.messages.contains("Class test.TestTwoInjectedConstructors cannot have more than one @Inject annotated constructor."),
+            "Error message not found!"
         )
     }
 }
