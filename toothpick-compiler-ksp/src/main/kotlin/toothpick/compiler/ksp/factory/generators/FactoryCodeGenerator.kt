@@ -2,8 +2,10 @@ package toothpick.compiler.ksp.factory.generators
 
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
+import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.plusParameter
+import toothpick.MemberInjector
 import toothpick.Scope
 import toothpick.compiler.ksp.factory.targets.ConstructorInjectionTarget
 
@@ -31,7 +33,8 @@ class FactoryCodeGenerator(
             addType(
                 TypeSpec.classBuilder(generatedClassName)
                     .addSuperinterface(superInterface)
-                    .addCreateInstanceFunction(className)
+                    .addCreateInstanceFunction(className, injectionTarget.superClassThatNeedsMemberInjection != null)
+                    .addMemberInjectionFor(injectionTarget.superClassThatNeedsMemberInjection)
                     .addGetTargetScope()
                     .addHasScopeAnnotation(injectionTarget.scopeName != null)
                     .addHasSingletonAnnotation(injectionTarget.hasSingletonAnnotation)
@@ -50,6 +53,29 @@ class FactoryCodeGenerator(
             fileSpec.writeTo(it)
         }
     }
+}
+
+private fun TypeSpec.Builder.addMemberInjectionFor(classThatNeedsMemberInjection: KSClassDeclaration?): TypeSpec.Builder {
+    classThatNeedsMemberInjection ?: return this
+
+    val qualifiedName = classThatNeedsMemberInjection.qualifiedName?.asString()!!
+    val packageName = classThatNeedsMemberInjection.packageName.asString()
+    val parametrizedClassName = ClassName.bestGuess(qualifiedName)
+    val simpleName = classThatNeedsMemberInjection.simpleName.asString()
+
+    val memberInjectorClassName = ClassName.bestGuess(
+        "$packageName.${simpleName}__MemberInjector"
+    )
+
+    return this.addProperty(
+        PropertySpec.builder(
+            "memberInjector",
+            MemberInjector::class.asClassName().plusParameter(parametrizedClassName)
+        )
+            .addModifiers(KModifier.PRIVATE)
+            .initializer("%L()", memberInjectorClassName)
+            .build()
+    )
 }
 
 private fun TypeSpec.Builder.addGetTargetScope(): TypeSpec.Builder {
@@ -113,7 +139,10 @@ private fun TypeSpec.Builder.addHasScopeAnnotation(hasScopeAnnotation: Boolean):
     )
 }
 
-private fun TypeSpec.Builder.addCreateInstanceFunction(className: ClassName): TypeSpec.Builder {
+private fun TypeSpec.Builder.addCreateInstanceFunction(
+    className: ClassName,
+    hasMemberInjector: Boolean
+): TypeSpec.Builder {
     return this.addFunction(
         FunSpec.builder("createInstance")
             .addModifiers(KModifier.OVERRIDE)
@@ -121,6 +150,11 @@ private fun TypeSpec.Builder.addCreateInstanceFunction(className: ClassName): Ty
             .addParameter("scope", Scope::class.java)
             .returns(className)
             .addStatement("val instance = %L()", className.simpleName)
+            .apply {
+                if (hasMemberInjector) {
+                    addStatement("memberInjector.inject(instance, scope)")
+                }
+            }
             .addStatement("return instance")
             .build()
     )

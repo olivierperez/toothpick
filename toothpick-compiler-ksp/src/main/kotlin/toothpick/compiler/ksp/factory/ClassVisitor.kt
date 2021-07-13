@@ -3,7 +3,9 @@ package toothpick.compiler.ksp.factory
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
+import toothpick.compiler.ksp.common.containsInject
 import toothpick.compiler.ksp.factory.targets.ConstructorInjectionTarget
 
 class ClassVisitor(
@@ -26,10 +28,22 @@ class ClassVisitor(
             hasReleasableAnnotation = false,
             hasProvidesSingletonInScopeAnnotation = false,
             hasProvidesReleasableAnnotation = false,
-            superClassThatNeedsMemberInjection = null
+            superClassThatNeedsMemberInjection = classDeclaration.getMostDirectSuperClassWithInjectedMembers()
         )
     }
 
+}
+
+private fun KSClassDeclaration.getMostDirectSuperClassWithInjectedMembers(): KSClassDeclaration? {
+    var klass: KSClassDeclaration? = this
+    do {
+        if (this.declarations.any { it is KSPropertyDeclaration && it.annotations.containsInject() }) {
+            return this
+        }
+        klass = klass!!.parentDeclaration as? KSClassDeclaration
+    } while (klass != null)
+
+    return null
 }
 
 private fun KSClassDeclaration.getScopeName(): String? {

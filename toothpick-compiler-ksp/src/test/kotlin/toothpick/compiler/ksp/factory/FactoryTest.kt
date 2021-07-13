@@ -380,7 +380,7 @@ class FactoryTest {
     }
 
     @Test
-    @DisplayName("with 2 constructor but only 1 injected")
+    @DisplayName("with one member injected")
     fun testAClassThatNeedsInjection_shouldUseAMemberInjector() {
         // Given
         val kotlinSource = SourceFile.kotlin(
@@ -410,17 +410,19 @@ class FactoryTest {
             
             import kotlin.Boolean
             import toothpick.Factory
+            import toothpick.MemberInjector
             import toothpick.Scope
             
             public class TestWithMemberInjection__Factory : Factory<TestWithMemberInjection> {
-              private val memberInjector: MemberInjector<TestWithMemberInjection> = test.TestWithMemberInjection__MemberInjector()
-              
+              private val memberInjector: MemberInjector<TestWithMemberInjection> =
+                  test.TestWithMemberInjection__MemberInjector()
+
               public override fun createInstance(scope: Scope): TestWithMemberInjection {
                 val instance = TestWithMemberInjection()
                 memberInjector.inject(instance, scope)
                 return instance
               }
-              
+
               public override fun getTargetScope(scope: Scope): Scope = scope
 
               public override fun hasScopeAnnotation(): Boolean = false
@@ -437,7 +439,7 @@ class FactoryTest {
             """.trimIndent(),
             File(
                 compilationResult.outputDirectory,
-                "../ksp/sources/kotlin/test/TestOnlyOneInjectedConstructor__Factory.kt"
+                "../ksp/sources/kotlin/test/TestWithMemberInjection__Factory.kt"
             ).readText()
         )
     }

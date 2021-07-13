@@ -20,7 +20,6 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import toothpick.compiler.ksp.common.ParamInjectionTarget
 import java.util.ArrayList
-import javax.lang.model.element.TypeElement
 
 /** Basically all information to create an object / call a constructor of a class.  */
 class ConstructorInjectionTarget(
@@ -31,7 +30,7 @@ class ConstructorInjectionTarget(
     val hasReleasableAnnotation: Boolean,
     val hasProvidesSingletonInScopeAnnotation: Boolean,
     val hasProvidesReleasableAnnotation: Boolean,
-    val superClassThatNeedsMemberInjection: TypeElement?
+    val superClassThatNeedsMemberInjection: KSClassDeclaration?
 ) {
     val parameters: List<ParamInjectionTarget> = ArrayList<ParamInjectionTarget>()
     var throwsThrowable = false
