@@ -45,47 +45,49 @@ class FactoryCodeGenerator(
             dependencies = Dependencies(aggregating = false),
             packageName = packageName,
             fileName = generatedClassName
-        ).use { output ->
-            output.writer().use {
-                fileSpec.writeTo(it)
-            }
+        ).writer().use {
+            fileSpec.writeTo(it)
         }
     }
 }
 
 private fun TypeSpec.Builder.addHasProvidesSingletonAnnotation(hasProvidesSingletonAnnotation: Boolean): TypeSpec.Builder {
-    return this.addFunction(FunSpec.builder("hasProvidesSingletonAnnotation")
-        .returns(Boolean::class.java)
-        .addModifiers(KModifier.OVERRIDE)
-        .addStatement("return %L", hasProvidesSingletonAnnotation)
-        .build()
+    return this.addFunction(
+        FunSpec.builder("hasProvidesSingletonAnnotation")
+            .returns(Boolean::class.java)
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("return %L", hasProvidesSingletonAnnotation)
+            .build()
     )
 }
 
 private fun TypeSpec.Builder.addHasProvidesReleasableAnnotation(hasProvidesReleasableAnnotation: Boolean): TypeSpec.Builder {
-    return this.addFunction(FunSpec.builder("hasProvidesReleasableAnnotation")
-        .returns(Boolean::class.java)
-        .addModifiers(KModifier.OVERRIDE)
-        .addStatement("return %L", hasProvidesReleasableAnnotation)
-        .build()
+    return this.addFunction(
+        FunSpec.builder("hasProvidesReleasableAnnotation")
+            .returns(Boolean::class.java)
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("return %L", hasProvidesReleasableAnnotation)
+            .build()
     )
 }
 
 private fun TypeSpec.Builder.addHasReleasableAnnotation(hasReleasableAnnotation: Boolean): TypeSpec.Builder {
-    return this.addFunction(FunSpec.builder("hasReleasableAnnotation")
-        .returns(Boolean::class.java)
-        .addModifiers(KModifier.OVERRIDE)
-        .addStatement("return %L", hasReleasableAnnotation)
-        .build()
+    return this.addFunction(
+        FunSpec.builder("hasReleasableAnnotation")
+            .returns(Boolean::class.java)
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("return %L", hasReleasableAnnotation)
+            .build()
     )
 }
 
 private fun TypeSpec.Builder.addHasSingletonAnnotation(hasSingletonAnnotation: Boolean): TypeSpec.Builder {
-    return this.addFunction(FunSpec.builder("hasSingletonAnnotation")
-        .returns(Boolean::class.java)
-        .addModifiers(KModifier.OVERRIDE)
-        .addStatement("return %L", hasSingletonAnnotation)
-        .build()
+    return this.addFunction(
+        FunSpec.builder("hasSingletonAnnotation")
+            .returns(Boolean::class.java)
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("return %L", hasSingletonAnnotation)
+            .build()
     )
 }
 
