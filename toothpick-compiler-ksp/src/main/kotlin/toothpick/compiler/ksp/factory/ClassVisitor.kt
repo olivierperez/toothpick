@@ -1,10 +1,8 @@
 package toothpick.compiler.ksp.factory
 
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.google.devtools.ksp.symbol.KSVisitorVoid
+import com.google.devtools.ksp.symbol.*
+import toothpick.compiler.ksp.common.ParamInjectionTarget
 import toothpick.compiler.ksp.common.containsInject
 import toothpick.compiler.ksp.common.isMethod
 import toothpick.compiler.ksp.common.superClass
@@ -30,11 +28,27 @@ class ClassVisitor(
             hasReleasableAnnotation = false,
             hasProvidesSingletonInScopeAnnotation = false,
             hasProvidesReleasableAnnotation = false,
-            superClassThatNeedsMemberInjection = classDeclaration.getMostDirectSuperClassWithInjectedMembers()
+            superClassThatNeedsMemberInjection = classDeclaration.getMostDirectSuperClassWithInjectedMembers(),
+            parameters = function.parameters.toParameterTarget()
         )
     }
 
 }
+
+private fun List<KSValueParameter>.toParameterTarget(): List<ParamInjectionTarget> {
+    return this.map {
+        ParamInjectionTarget(
+            memberType = it.type,
+            memberName = it.name!!.asString(),
+            kind = ParamInjectionTarget.Kind.INSTANCE,
+            kindParamClass = it.type,
+            name = it.annotatedName
+        )
+    }
+}
+
+private val KSValueParameter.annotatedName: String?
+    get() = null
 
 private fun KSClassDeclaration.getMostDirectSuperClassWithInjectedMembers(): KSClassDeclaration? {
     var klass: KSClassDeclaration? = this

@@ -16,14 +16,14 @@
  */
 package toothpick.compiler.ksp.common
 
-import javax.lang.model.element.TypeElement
+import com.google.devtools.ksp.symbol.KSTypeReference
 
 data class ParamInjectionTarget(
-    var memberClass: TypeElement,
+    var memberType: KSTypeReference,
     val memberName: String,
     val kind: Kind,
-    val kindParamClass: TypeElement,
-    val name: Any
+    val kindParamClass: KSTypeReference,
+    val name: String?
 ) {
     enum class Kind {
         INSTANCE, PROVIDER, LAZY

@@ -30,8 +30,9 @@ class ConstructorInjectionTarget(
     val hasReleasableAnnotation: Boolean,
     val hasProvidesSingletonInScopeAnnotation: Boolean,
     val hasProvidesReleasableAnnotation: Boolean,
-    val superClassThatNeedsMemberInjection: KSClassDeclaration?
+    val superClassThatNeedsMemberInjection: KSClassDeclaration?,
+    val parameters: List<ParamInjectionTarget> = emptyList()
 ) {
-    val parameters: List<ParamInjectionTarget> = ArrayList<ParamInjectionTarget>()
+
     var throwsThrowable = false
 }

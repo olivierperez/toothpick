@@ -7,6 +7,7 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.plusParameter
 import toothpick.MemberInjector
 import toothpick.Scope
+import toothpick.compiler.ksp.common.ParamInjectionTarget
 import toothpick.compiler.ksp.factory.targets.ConstructorInjectionTarget
 
 private const val FACTORY_SUFFIX = "__Factory"
@@ -33,7 +34,11 @@ class FactoryCodeGenerator(
             addType(
                 TypeSpec.classBuilder(generatedClassName)
                     .addSuperinterface(superInterface)
-                    .addCreateInstanceFunction(className, injectionTarget.superClassThatNeedsMemberInjection != null)
+                    .addCreateInstanceFunction(
+                        className,
+                        injectionTarget.parameters,
+                        injectionTarget.superClassThatNeedsMemberInjection != null
+                    )
                     .addMemberInjectionFor(injectionTarget.superClassThatNeedsMemberInjection)
                     .addGetTargetScope()
                     .addHasScopeAnnotation(injectionTarget.scopeName != null)
@@ -141,15 +146,26 @@ private fun TypeSpec.Builder.addHasScopeAnnotation(hasScopeAnnotation: Boolean):
 
 private fun TypeSpec.Builder.addCreateInstanceFunction(
     className: ClassName,
+    parameters: List<ParamInjectionTarget>,
     hasMemberInjector: Boolean
 ): TypeSpec.Builder {
+
     return this.addFunction(
         FunSpec.builder("createInstance")
             .addModifiers(KModifier.OVERRIDE)
             .addModifiers(KModifier.PUBLIC)
             .addParameter("scope", Scope::class.java)
             .returns(className)
-            .addStatement("val instance = %L()", className.simpleName)
+            .apply {
+                parameters.forEachIndexed { index, param ->
+                    addStatement("val param$index = scope.getInstance(%L::class.java)", param.kindParamClass)
+                }
+            }
+            .addStatement(
+                "val instance = %L(%L)",
+                className.simpleName,
+                parameters.indices.joinToString(", ") { "param$it" }
+            )
             .apply {
                 if (hasMemberInjector) {
                     addStatement("memberInjector.inject(instance, scope)")
