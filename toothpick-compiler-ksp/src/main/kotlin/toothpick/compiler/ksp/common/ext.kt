@@ -1,12 +1,14 @@
 package toothpick.compiler.ksp.common
 
-import com.google.devtools.ksp.symbol.ClassKind
-import com.google.devtools.ksp.symbol.KSAnnotation
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.isConstructor
+import com.google.devtools.ksp.symbol.*
 
 fun KSFunctionDeclaration.isInjected(): Boolean {
     return annotations.containsInject()
+}
+
+fun KSDeclaration.isMethod(): Boolean {
+    return this is KSFunctionDeclaration && !this.isConstructor()
 }
 
 fun Sequence<KSAnnotation>.containsInject(): Boolean {

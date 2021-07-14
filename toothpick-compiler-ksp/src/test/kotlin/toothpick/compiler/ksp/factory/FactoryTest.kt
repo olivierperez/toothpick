@@ -381,7 +381,7 @@ class FactoryTest {
 
     @Test
     @DisplayName("with one member injected")
-    fun testAClassThatNeedsInjection_shouldUseAMemberInjector() {
+    fun testAClassThatNeedsInjectionForMember_shouldUseAMemberInjector() {
         // Given
         val kotlinSource = SourceFile.kotlin(
             trimIndent = true,
@@ -440,6 +440,71 @@ class FactoryTest {
             File(
                 compilationResult.outputDirectory,
                 "../ksp/sources/kotlin/test/TestWithMemberInjection__Factory.kt"
+            ).readText()
+        )
+    }
+
+    @Test
+    @DisplayName("with one method injected")
+    fun testAClassThatNeedsInjectionForMethod_shouldUseAMemberInjector() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestWithMethodInjection.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+
+                class TestWithMethodInjection @Inject constructor() {
+                  @Inject
+                  fun countLetters(message: String) {}
+                }
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+        assertEquals(KotlinCompilation.ExitCode.OK, compilationResult.exitCode)
+        assertTrue(compilationResult.kspGeneratedSources().isNotEmpty())
+        assertEquals(
+            """
+            package test
+            
+            import kotlin.Boolean
+            import toothpick.Factory
+            import toothpick.MemberInjector
+            import toothpick.Scope
+            
+            public class TestWithMethodInjection__Factory : Factory<TestWithMethodInjection> {
+              private val memberInjector: MemberInjector<TestWithMethodInjection> =
+                  test.TestWithMethodInjection__MemberInjector()
+
+              public override fun createInstance(scope: Scope): TestWithMethodInjection {
+                val instance = TestWithMethodInjection()
+                memberInjector.inject(instance, scope)
+                return instance
+              }
+
+              public override fun getTargetScope(scope: Scope): Scope = scope
+
+              public override fun hasScopeAnnotation(): Boolean = false
+
+              public override fun hasSingletonAnnotation(): Boolean = false
+
+              public override fun hasReleasableAnnotation(): Boolean = false
+
+              public override fun hasProvidesSingletonAnnotation(): Boolean = false
+
+              public override fun hasProvidesReleasableAnnotation(): Boolean = false
+            }
+            
+            """.trimIndent(),
+            File(
+                compilationResult.outputDirectory,
+                "../ksp/sources/kotlin/test/TestWithMethodInjection__Factory.kt"
             ).readText()
         )
     }

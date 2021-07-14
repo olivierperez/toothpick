@@ -16,13 +16,14 @@
  */
 package toothpick.compiler.factory;
 
-import static com.google.common.truth.Truth.assert_;
-import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
-
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
+
+import static com.google.common.truth.Truth.assert_;
+import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class FactoryTest extends BaseFactoryTest {
   @Test
@@ -569,6 +570,7 @@ public class FactoryTest extends BaseFactoryTest {
   }
 
   @Test
+  // TODO OPZ Traiter cette méthode plus tard
   public void
       testAInnerClassThatNeedsInjection_shouldHaveAFactoryThatInjectsIt_whenItHasAnInjectedField() {
     JavaFileObject source =

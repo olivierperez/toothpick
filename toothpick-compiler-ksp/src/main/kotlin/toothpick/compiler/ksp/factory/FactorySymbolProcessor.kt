@@ -1,5 +1,6 @@
 package toothpick.compiler.ksp.factory
 
+import com.google.devtools.ksp.isConstructor
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -28,6 +29,7 @@ class FactorySymbolProcessor(
 
         injectedSymbols.filter { it.validate() }
             .filterIsInstance(KSFunctionDeclaration::class.java)
+            .filter { it.isConstructor() }
             .forEach { it.accept(visitor, Unit) }
 
         visitor.targets
