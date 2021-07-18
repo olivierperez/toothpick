@@ -153,7 +153,11 @@ class FactoryTest {
 
         // Then
 
-        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilationResult.exitCode)
+        assertEquals(
+            KotlinCompilation.ExitCode.COMPILATION_ERROR,
+            compilationResult.exitCode,
+            "Compilation did not failed as expected!"
+        )
         assertTrue(
             compilationResult.kspGeneratedSources().foldersAreEmpty(),
             "Nothing should be generated!"
@@ -185,7 +189,11 @@ class FactoryTest {
 
         // Then
 
-        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilationResult.exitCode)
+        assertEquals(
+            KotlinCompilation.ExitCode.COMPILATION_ERROR,
+            compilationResult.exitCode,
+            "Compilation did not failed as expected!"
+        )
         assertTrue(
             compilationResult.kspGeneratedSources().foldersAreEmpty(),
             "Nothing should be generated!"
@@ -217,7 +225,11 @@ class FactoryTest {
 
         // Then
 
-        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilationResult.exitCode)
+        assertEquals(
+            KotlinCompilation.ExitCode.COMPILATION_ERROR,
+            compilationResult.exitCode,
+            "Compilation did not failed as expected!"
+        )
         assertTrue(
             compilationResult.kspGeneratedSources().foldersAreEmpty(),
             "Nothing should be generated!"
@@ -309,7 +321,11 @@ class FactoryTest {
 
         // Then
 
-        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilationResult.exitCode)
+        assertEquals(
+            KotlinCompilation.ExitCode.COMPILATION_ERROR,
+            compilationResult.exitCode,
+            "Compilation did not failed as expected!"
+        )
         assertTrue(
             compilationResult.kspGeneratedSources().foldersAreEmpty(),
             "Nothing should be generated!"
@@ -810,6 +826,80 @@ class FactoryTest {
                 compilationResult.outputDirectory,
                 "../ksp/sources/kotlin/test/TestNonEmptyConstructor__Factory.kt"
             ).readText()
+        )
+    }
+
+    @Test
+    @DisplayName("with non-empty public constructor with Provider of generic")
+    fun testNonEmptyConstructorWithProviderGeneric_shouldNotAllowInjection() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestNonEmptyConstructor.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+                import toothpick.Lazy
+
+                class TestNonEmptyConstructor @Inject constructor(messages: Lazy<List<String>>)
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+
+        assertEquals(
+            KotlinCompilation.ExitCode.COMPILATION_ERROR,
+            compilationResult.exitCode,
+            "Compilation did not failed as expected!"
+        )
+        assertTrue(
+            compilationResult.kspGeneratedSources().foldersAreEmpty(),
+            "Nothing should be generated!"
+        )
+        assertTrue(
+            compilationResult.messages.contains("Lazy/Provider TestNonEmptyConstructor.messages is not a valid in <init>. Lazy/Provider cannot be used on generic types."),
+            "Error message not found!"
+        )
+    }
+
+    @Test
+    @DisplayName("with non-empty public constructor with Lazy of generic")
+    fun testNonEmptyConstructorWithLazyGeneric_shouldNotAllowInjection() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestNonEmptyConstructor.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+                import javax.inject.Provider
+
+                class TestNonEmptyConstructor @Inject constructor(messages: Provider<List<String>>)
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+
+        assertEquals(
+            KotlinCompilation.ExitCode.COMPILATION_ERROR,
+            compilationResult.exitCode,
+            "Compilation did not failed as expected!"
+        )
+        assertTrue(
+            compilationResult.kspGeneratedSources().foldersAreEmpty(),
+            "Nothing should be generated!"
+        )
+        assertTrue(
+            compilationResult.messages.contains("Lazy/Provider TestNonEmptyConstructor.messages is not a valid in <init>. Lazy/Provider cannot be used on generic types."),
+            "Error message not found!"
         )
     }
 }

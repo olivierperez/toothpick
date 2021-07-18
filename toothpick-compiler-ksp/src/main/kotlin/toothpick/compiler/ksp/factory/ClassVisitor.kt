@@ -64,7 +64,7 @@ private fun KSTypeReference.asMemberType(): KSTypeReference {
 }
 
 private val KSValueParameter.annotatedName: String?
-    get() = null
+    get() = this.name?.asString()
 
 private fun KSClassDeclaration.getMostDirectSuperClassWithInjectedMembers(): KSClassDeclaration? {
     var klass: KSClassDeclaration? = this
