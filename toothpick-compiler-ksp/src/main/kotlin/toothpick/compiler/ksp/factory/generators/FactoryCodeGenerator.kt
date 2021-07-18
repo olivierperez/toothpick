@@ -158,9 +158,11 @@ private fun TypeSpec.Builder.addCreateInstanceFunction(
             .returns(className)
             .apply {
                 parameters.forEachIndexed { index, param ->
-                    
-                    addStatement("val param$index = scope.%L(%L::class.java)", param.kind.toScopeGetMethod(), 
-                        param.memberType)
+                    addStatement(
+                        "val param$index = scope.%L(%L::class.java)",
+                        param.kind.toScopeGetMethod(),
+                        param.memberType
+                    )
                 }
             }
             .addStatement(
@@ -179,7 +181,7 @@ private fun TypeSpec.Builder.addCreateInstanceFunction(
 }
 
 private fun ParamInjectionTarget.Kind.toScopeGetMethod(): String {
-    return when(this) {
+    return when (this) {
         ParamInjectionTarget.Kind.INSTANCE -> "getInstance"
         ParamInjectionTarget.Kind.LAZY -> "getLazy"
         ParamInjectionTarget.Kind.PROVIDER -> "getProvider"

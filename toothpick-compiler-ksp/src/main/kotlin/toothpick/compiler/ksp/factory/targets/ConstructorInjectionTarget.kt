@@ -32,7 +32,4 @@ class ConstructorInjectionTarget(
     val hasProvidesReleasableAnnotation: Boolean,
     val superClassThatNeedsMemberInjection: KSClassDeclaration?,
     val parameters: List<ParamInjectionTarget> = emptyList()
-) {
-
-    var throwsThrowable = false
-}
+)
