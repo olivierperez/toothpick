@@ -159,7 +159,8 @@ private fun TypeSpec.Builder.addCreateInstanceFunction(
             .apply {
                 parameters.forEachIndexed { index, param ->
                     addStatement(
-                        "val param$index = scope.%L(%L::class.java)",
+                        "val param%L = scope.%L(%L::class.java)",
+                        index,
                         param.kind.toScopeGetMethod(),
                         param.memberType
                     )

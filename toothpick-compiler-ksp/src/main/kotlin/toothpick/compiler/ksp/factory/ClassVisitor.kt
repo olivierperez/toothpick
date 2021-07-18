@@ -48,7 +48,7 @@ private fun List<KSValueParameter>.toParameterTarget(): List<ParamInjectionTarge
 }
 
 private fun KSTypeReference.toKind(): ParamInjectionTarget.Kind {
-    return when(this.resolve().declaration.qualifiedName?.asString()) {
+    return when (this.resolve().declaration.qualifiedName?.asString()) {
         "toothpick.Lazy" -> ParamInjectionTarget.Kind.LAZY
         "javax.inject.Provider" -> ParamInjectionTarget.Kind.PROVIDER
         else -> ParamInjectionTarget.Kind.INSTANCE
@@ -56,8 +56,11 @@ private fun KSTypeReference.toKind(): ParamInjectionTarget.Kind {
 }
 
 private fun KSTypeReference.asMemberType(): KSTypeReference {
-    return this.element?.typeArguments?.firstOrNull()?.type
-        ?: this
+    return when (this.resolve().declaration.qualifiedName?.asString()) {
+        "toothpick.Lazy" -> this.element?.typeArguments?.firstOrNull()?.type ?: this
+        "javax.inject.Provider" -> this.element?.typeArguments?.firstOrNull()?.type ?: this
+        else -> this
+    }
 }
 
 private val KSValueParameter.annotatedName: String?
