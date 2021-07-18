@@ -633,4 +633,124 @@ class FactoryTest {
             ).readText()
         )
     }
+
+    @Test
+    @DisplayName("with non-empty public constructor with Lazy")
+    fun testNonEmptyConstructorWithLazy_shouldInjectParameters() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestNonEmptyConstructor.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+                import toothpick.Lazy
+
+                class TestNonEmptyConstructor @Inject constructor(message: Lazy<String>, value: Int)
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+        assertEquals(KotlinCompilation.ExitCode.OK, compilationResult.exitCode)
+        assertTrue(compilationResult.kspGeneratedSources().isNotEmpty())
+        assertEquals(
+            """
+            package test
+            
+            import kotlin.Boolean
+            import toothpick.Factory
+            import toothpick.Scope
+            
+            public class TestNonEmptyConstructor__Factory : Factory<TestNonEmptyConstructor> {
+              public override fun createInstance(scope: Scope): TestNonEmptyConstructor {
+                val param0 = scope.getLazy(String::class.java)
+                val param1 = scope.getInstance(Int::class.java)
+                val instance = TestNonEmptyConstructor(param0, param1)
+                return instance
+              }
+
+              public override fun getTargetScope(scope: Scope): Scope = scope
+
+              public override fun hasScopeAnnotation(): Boolean = false
+
+              public override fun hasSingletonAnnotation(): Boolean = false
+
+              public override fun hasReleasableAnnotation(): Boolean = false
+
+              public override fun hasProvidesSingletonAnnotation(): Boolean = false
+
+              public override fun hasProvidesReleasableAnnotation(): Boolean = false
+            }
+            
+            """.trimIndent(),
+            File(
+                compilationResult.outputDirectory,
+                "../ksp/sources/kotlin/test/TestNonEmptyConstructor__Factory.kt"
+            ).readText()
+        )
+    }
+
+    @Test
+    @DisplayName("with non-empty public constructor with Provider")
+    fun testNonEmptyConstructorWithProvier_shouldInjectParameters() {
+        // Given
+        val kotlinSource = SourceFile.kotlin(
+            trimIndent = true,
+            name = "TestNonEmptyConstructor.kt",
+            contents = """
+                package test
+
+                import javax.inject.Inject
+                import javax.inject.Provider
+
+                class TestNonEmptyConstructor @Inject constructor(message: Provider<String>, value: Int)
+                """
+        )
+
+        // When
+        val compilationResult = compile(temporaryFolder, kotlinSource)
+
+        // Then
+        assertEquals(KotlinCompilation.ExitCode.OK, compilationResult.exitCode)
+        assertTrue(compilationResult.kspGeneratedSources().isNotEmpty())
+        assertEquals(
+            """
+            package test
+            
+            import kotlin.Boolean
+            import toothpick.Factory
+            import toothpick.Scope
+            
+            public class TestNonEmptyConstructor__Factory : Factory<TestNonEmptyConstructor> {
+              public override fun createInstance(scope: Scope): TestNonEmptyConstructor {
+                val param0 = scope.getProvider(String::class.java)
+                val param1 = scope.getInstance(Int::class.java)
+                val instance = TestNonEmptyConstructor(param0, param1)
+                return instance
+              }
+
+              public override fun getTargetScope(scope: Scope): Scope = scope
+
+              public override fun hasScopeAnnotation(): Boolean = false
+
+              public override fun hasSingletonAnnotation(): Boolean = false
+
+              public override fun hasReleasableAnnotation(): Boolean = false
+
+              public override fun hasProvidesSingletonAnnotation(): Boolean = false
+
+              public override fun hasProvidesReleasableAnnotation(): Boolean = false
+            }
+            
+            """.trimIndent(),
+            File(
+                compilationResult.outputDirectory,
+                "../ksp/sources/kotlin/test/TestNonEmptyConstructor__Factory.kt"
+            ).readText()
+        )
+    }
 }

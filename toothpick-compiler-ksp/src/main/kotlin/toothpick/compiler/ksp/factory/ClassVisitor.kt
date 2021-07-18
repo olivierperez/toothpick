@@ -38,13 +38,26 @@ class ClassVisitor(
 private fun List<KSValueParameter>.toParameterTarget(): List<ParamInjectionTarget> {
     return this.map {
         ParamInjectionTarget(
-            memberType = it.type,
+            memberType = it.type.asMemberType(),
             memberName = it.name!!.asString(),
-            kind = ParamInjectionTarget.Kind.INSTANCE,
+            kind = it.type.toKind(),
             kindParamClass = it.type,
             name = it.annotatedName
         )
     }
+}
+
+private fun KSTypeReference.toKind(): ParamInjectionTarget.Kind {
+    return when(this.resolve().declaration.qualifiedName?.asString()) {
+        "toothpick.Lazy" -> ParamInjectionTarget.Kind.LAZY
+        "javax.inject.Provider" -> ParamInjectionTarget.Kind.PROVIDER
+        else -> ParamInjectionTarget.Kind.INSTANCE
+    }
+}
+
+private fun KSTypeReference.asMemberType(): KSTypeReference {
+    return this.element?.typeArguments?.firstOrNull()?.type
+        ?: this
 }
 
 private val KSValueParameter.annotatedName: String?
